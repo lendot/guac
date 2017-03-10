@@ -45,7 +45,12 @@ midi=pygame.midi.Output(0)
 
 midi.set_instrument(36)
 
-NOTE_MAPPING = [60,62,64,65,67,69,71,72,74,76,77,79]
+#NOTE_MAPPING = [60,62,64,65,67,69,71,72,74,76,77,79]
+NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
+
+# octave to start with
+octave=5
+
 
 print('Press Ctrl-C to quit.')
 last_touched = cap.touched()
@@ -59,11 +64,11 @@ while True:
         # First check if transitioned from not touched to touched.
         if current_touched & pin_bit and not last_touched & pin_bit:
             print('{0} touched!'.format(i))
-            midi.note_off(NOTE_MAPPING[i]-24)
-            midi.note_on(NOTE_MAPPING[i]-24,127,0)
+            midi.note_off(octave*12+NOTE_OFFSET[i])
+            midi.note_on(octave*12+NOTE_OFFSET[i],127,0)
         if not current_touched & pin_bit and last_touched & pin_bit:
             print('{0} released!'.format(i))
-            midi.note_off(NOTE_MAPPING[i]-24)
+            midi.note_off(octave*12+NOTE_OFFSET[i])
 
     for i in range(len(button_pins)):
         if (GPIO.input(button_pins[i]) == True) and not button_on[i]:
