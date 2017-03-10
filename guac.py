@@ -7,6 +7,8 @@ import RPi.GPIO as GPIO
 
 import Adafruit_MPR121.MPR121 as MPR121
 
+import config
+
 # octave to start with
 octave=5
 
@@ -33,12 +35,6 @@ cap.set_thresholds(16,4)
 pygame.mixer.pre_init(44100, -16, 12, 512)
 pygame.init()
 
-button_pins={'patch_down' : 19,
-             'patch_up' : 13,
-             'octave_down' : 6,
-             'octave_up' : 5}
-
-#button_pins=[5,6,13,19]
 button_on={'patch_down' : False,
            'patch_up' : False,
            'octave_down' : False,
@@ -46,19 +42,15 @@ button_on={'patch_down' : False,
 
 GPIO.setmode(GPIO.BCM)
 
-for pin in button_pins.keys():
-    GPIO.setup(button_pins[pin],GPIO.IN)
+for pin in config.button_pins.keys():
+    GPIO.setup(config.button_pins[pin],GPIO.IN)
 
 
 pygame.midi.init()
-dev_info=pygame.midi.get_device_info(0)
+dev_info=pygame.midi.get_device_info(config.midi_device)
 print dev_info
 
-midi=pygame.midi.Output(0)
-
-
-#NOTE_MAPPING = [60,62,64,65,67,69,71,72,74,76,77,79]
-NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
+midi=pygame.midi.Output(config.midi_device)
 
 
 midi.set_instrument(patch)
@@ -75,55 +67,55 @@ while True:
         # First check if transitioned from not touched to touched.
         if current_touched & pin_bit and not last_touched & pin_bit:
             print('{0} touched!'.format(i))
-            midi.note_off(octave*12+NOTE_OFFSET[i])
-            midi.note_on(octave*12+NOTE_OFFSET[i],127,0)
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
+            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
         if not current_touched & pin_bit and last_touched & pin_bit:
             print('{0} released!'.format(i))
-            midi.note_off(octave*12+NOTE_OFFSET[i])
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
 
 
     # check for patch up and down presses
-    if (GPIO.input(button_pins['patch_up']) == True) and not button_on['patch_up']:
+    if (GPIO.input(config.button_pins['patch_up']) == True) and not button_on['patch_up']:
         print("patch_up pressed")
         if patch<127:
             patch += 1
             print ("New patch: {0}".format(patch))
             midi.set_instrument(patch)
         button_on['patch_up']=True
-    if (GPIO.input(button_pins['patch_up']) == False) and button_on['patch_up']:
+    if (GPIO.input(config.button_pins['patch_up']) == False) and button_on['patch_up']:
         print("patch_up released")
         button_on['patch_up']=False 
             
-    if (GPIO.input(button_pins['patch_down']) == True) and not button_on['patch_down']:
+    if (GPIO.input(config.button_pins['patch_down']) == True) and not button_on['patch_down']:
         print("patch_down pressed")
         if patch>0:
             patch -= 1
             print ("New patch: {0}".format(patch))
             midi.set_instrument(patch)
         button_on['patch_down']=True
-    if (GPIO.input(button_pins['patch_down']) == False) and button_on['patch_down']:
+    if (GPIO.input(config.button_pins['patch_down']) == False) and button_on['patch_down']:
         print("patch_down released")
         button_on['patch_down']=False 
             
 
     # check for octave up and down presses
-    if (GPIO.input(button_pins['octave_up']) == True) and not button_on['octave_up']:
+    if (GPIO.input(config.button_pins['octave_up']) == True) and not button_on['octave_up']:
         print("octave_up pressed")
         if octave<8:
             octave += 1
             print ("New octave: {0}".format(octave))
         button_on['octave_up']=True
-    if (GPIO.input(button_pins['octave_up']) == False) and button_on['octave_up']:
+    if (GPIO.input(config.button_pins['octave_up']) == False) and button_on['octave_up']:
         print("octave_up released")
         button_on['octave_up']=False 
             
-    if (GPIO.input(button_pins['octave_down']) == True) and not button_on['octave_down']:
+    if (GPIO.input(config.button_pins['octave_down']) == True) and not button_on['octave_down']:
         print("octave_down pressed")
         if octave>0:
             octave -= 1
             print ("New octave: {0}".format(octave))
         button_on['octave_down']=True
-    if (GPIO.input(button_pins['octave_down']) == False) and button_on['octave_down']:
+    if (GPIO.input(config.button_pins['octave_down']) == False) and button_on['octave_down']:
         print("octave_down released")
         button_on['octave_down']=False 
 

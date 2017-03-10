@@ -1,0 +1,15 @@
+# config file for Guacenspiel
+# copy/rename to config.py and edit as necessary
+
+
+# set these to the (BCM) pin numbers they're connected to
+button_pins={'patch_down' : 19,
+             'patch_up' : 13,
+             'octave_down' : 6,
+             'octave_up' : 5}
+
+
+midi_device=0
+
+# midi note offsets from octave to use for sensor input mappings.
+NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
