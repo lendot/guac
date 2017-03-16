@@ -9,6 +9,22 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
+buttons = {
+    'record':{'handler':record_button,'on':False,'last_change':0},
+    'play':{'handler':play_button,'on':False,'last_change':0},
+    'stop':{'handler':stop_button,'on':False,'last_change':0},
+    'clear':{'handler':clear_button,'on':False,'last_change':0},
+    'track_advance':{'handler':track_advance_button,'on':False,'last_change':0},
+    'track1_mute':{'handler':track1_mute_button,'on':False,'last_change':0},
+    'track2_mute':{'handler':track2_mute_button,'on':False,'last_change':0},
+    'track3_mute':{'handler':track3_mute_button,'on':False,'last_change':0},
+    'track4_mute':{'handler':track4_mute_button,'on':False,'last_change':0},
+    'octave_up':{'handler':octave_up_button,'on':False,'last_change':0},
+    'octave_down':{'handler':octave_down_button,'on':False,'last_change':0},
+    'patch_up':{'handler':patch_up_button,'on':False,'last_change':0},
+    'patch_down':{'handler':patch_down_button,'on':False,'last_change':0},
+}
+    
 
 # handler for record button press
 def record_button():
