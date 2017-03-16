@@ -9,6 +9,63 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
+
+# handler for record button press
+def record_button():
+    return
+
+# handler for play button press
+def play_button():
+    return
+
+# handler for stop button press
+def stop_button():
+    return
+
+# handler for clear button press
+def clear_button():
+    return
+
+# handler for track advance button press
+def track_advance_button():
+    return
+
+# handler for track1 enable/disable button press
+def track1_mute_button():
+    return
+
+# handler for track2 enable/disable button press
+def track2_mute_button():
+    return
+
+# handler for track3 enable/disable button press
+def track3_mute_button():
+    return
+
+# handler for track4 enable/disable button press
+def track4_mute_button():
+    return
+
+# handler for octave up button press
+def octave_up_button():
+    return
+
+
+# handler for octave down button press
+def octave_down_button():
+    return
+
+
+# handler for patch up button press
+def patch_up_button():
+    return
+
+
+# handler for patch down button press
+def patch_down_button():
+    return
+
+
 # octave to start with
 octave=5
 
