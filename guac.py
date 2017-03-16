@@ -23,7 +23,7 @@ if not cap.begin():
     sys.exit(1)
 
 
-cap.set_thresholds(16,4)
+cap.set_thresholds(config.on_threshold,config.off_threshold)
 
 # Alternatively, specify a custom I2C address such as 0x5B (ADDR tied to 3.3V),
 # 0x5C (ADDR tied to SDA), or 0x5D (ADDR tied to SCL).
