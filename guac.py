@@ -9,23 +9,6 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
-buttons = {
-    'record':{'handler':record_button,'on':False,'last_change':0},
-    'play':{'handler':play_button,'on':False,'last_change':0},
-    'stop':{'handler':stop_button,'on':False,'last_change':0},
-    'clear':{'handler':clear_button,'on':False,'last_change':0},
-    'track_advance':{'handler':track_advance_button,'on':False,'last_change':0},
-    'track1_mute':{'handler':track1_mute_button,'on':False,'last_change':0},
-    'track2_mute':{'handler':track2_mute_button,'on':False,'last_change':0},
-    'track3_mute':{'handler':track3_mute_button,'on':False,'last_change':0},
-    'track4_mute':{'handler':track4_mute_button,'on':False,'last_change':0},
-    'octave_up':{'handler':octave_up_button,'on':False,'last_change':0},
-    'octave_down':{'handler':octave_down_button,'on':False,'last_change':0},
-    'patch_up':{'handler':patch_up_button,'on':False,'last_change':0},
-    'patch_down':{'handler':patch_down_button,'on':False,'last_change':0},
-}
-    
-
 # handler for record button press
 def record_button():
     return
@@ -64,21 +47,86 @@ def track4_mute_button():
 
 # handler for octave up button press
 def octave_up_button():
+    if octave<8:
+        octave += 1
+        print ("New octave: {0}".format(octave))
     return
 
 
 # handler for octave down button press
 def octave_down_button():
+    if octave>0:
+        octave -= 1
+        print ("New octave: {0}".format(octave))
     return
 
 
 # handler for patch up button press
 def patch_up_button():
+    if patch<127:
+        patch += 1
+        print ("New patch: {0}".format(patch))
+        midi.set_instrument(patch)
     return
 
 
 # handler for patch down button press
 def patch_down_button():
+    if patch>0:
+        patch -= 1
+        print ("New patch: {0}".format(patch))
+        midi.set_instrument(patch)
+    return
+
+
+buttons = {
+    'record':{'handler':record_button,'on':False,'last_change':0},
+    'play':{'handler':play_button,'on':False,'last_change':0},
+    'stop':{'handler':stop_button,'on':False,'last_change':0},
+    'clear':{'handler':clear_button,'on':False,'last_change':0},
+    'track_advance':{'handler':track_advance_button,'on':False,'last_change':0},
+    'track1_mute':{'handler':track1_mute_button,'on':False,'last_change':0},
+    'track2_mute':{'handler':track2_mute_button,'on':False,'last_change':0},
+    'track3_mute':{'handler':track3_mute_button,'on':False,'last_change':0},
+    'track4_mute':{'handler':track4_mute_button,'on':False,'last_change':0},
+    'octave_up':{'handler':octave_up_button,'on':False,'last_change':0},
+    'octave_down':{'handler':octave_down_button,'on':False,'last_change':0},
+    'patch_up':{'handler':patch_up_button,'on':False,'last_change':0},
+    'patch_down':{'handler':patch_down_button,'on':False,'last_change':0},
+}
+    
+
+
+def loop():
+    current_touched = cap.touched()
+    # Check each pin's last and current state to see if it was pressed or released.
+    for i in range(12):
+        # Each pin is represented by a bit in the touched value.  A value of 1
+        # means the pin is being touched, and 0 means it is not being touched.
+        pin_bit = 1 << i
+        # First check if transitioned from not touched to touched.
+        if current_touched & pin_bit and not last_touched & pin_bit:
+            print('{0} touched!'.format(i))
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
+            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
+        if not current_touched & pin_bit and last_touched & pin_bit:
+            print('{0} released!'.format(i))
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
+
+
+    # check buttons
+    for button in config.button_pins.keys:
+        if (GPIO.input(config.button_pins[button]) == True) and not buttons[button]['on']:
+            print('{0} pressed'.format(button))
+            buttons[button]['on']=True
+            buttons[button]['handler']()
+        if (GPIO.input(config.button_pins[button]) == False) and buttons[button]['on']:
+            print('{0} released'.format(button))
+            buttons[button]['on']=False
+
+
+    # Update last state and wait a short period before repeating.
+    last_touched = current_touched
     return
 
 
@@ -108,10 +156,6 @@ cap.set_thresholds(config.on_threshold,config.off_threshold)
 pygame.mixer.pre_init(44100, -16, 12, 512)
 pygame.init()
 
-button_on={'patch_down' : False,
-           'patch_up' : False,
-           'octave_down' : False,
-           'octave_up' : False}
 
 GPIO.setmode(GPIO.BCM)
 
@@ -131,67 +175,6 @@ midi.set_instrument(patch)
 print('Press Ctrl-C to quit.')
 last_touched = cap.touched()
 while True:
-    current_touched = cap.touched()
-    # Check each pin's last and current state to see if it was pressed or released.
-    for i in range(12):
-        # Each pin is represented by a bit in the touched value.  A value of 1
-        # means the pin is being touched, and 0 means it is not being touched.
-        pin_bit = 1 << i
-        # First check if transitioned from not touched to touched.
-        if current_touched & pin_bit and not last_touched & pin_bit:
-            print('{0} touched!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
-            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
-        if not current_touched & pin_bit and last_touched & pin_bit:
-            print('{0} released!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
-
-
-    # check for patch up and down presses
-    if (GPIO.input(config.button_pins['patch_up']) == True) and not button_on['patch_up']:
-        print("patch_up pressed")
-        if patch<127:
-            patch += 1
-            print ("New patch: {0}".format(patch))
-            midi.set_instrument(patch)
-        button_on['patch_up']=True
-    if (GPIO.input(config.button_pins['patch_up']) == False) and button_on['patch_up']:
-        print("patch_up released")
-        button_on['patch_up']=False 
-            
-    if (GPIO.input(config.button_pins['patch_down']) == True) and not button_on['patch_down']:
-        print("patch_down pressed")
-        if patch>0:
-            patch -= 1
-            print ("New patch: {0}".format(patch))
-            midi.set_instrument(patch)
-        button_on['patch_down']=True
-    if (GPIO.input(config.button_pins['patch_down']) == False) and button_on['patch_down']:
-        print("patch_down released")
-        button_on['patch_down']=False 
-            
-
-    # check for octave up and down presses
-    if (GPIO.input(config.button_pins['octave_up']) == True) and not button_on['octave_up']:
-        print("octave_up pressed")
-        if octave<8:
-            octave += 1
-            print ("New octave: {0}".format(octave))
-        button_on['octave_up']=True
-    if (GPIO.input(config.button_pins['octave_up']) == False) and button_on['octave_up']:
-        print("octave_up released")
-        button_on['octave_up']=False 
-            
-    if (GPIO.input(config.button_pins['octave_down']) == True) and not button_on['octave_down']:
-        print("octave_down pressed")
-        if octave>0:
-            octave -= 1
-            print ("New octave: {0}".format(octave))
-        button_on['octave_down']=True
-    if (GPIO.input(config.button_pins['octave_down']) == False) and button_on['octave_down']:
-        print("octave_down released")
-        button_on['octave_down']=False 
-
-    # Update last state and wait a short period before repeating.
-    last_touched = current_touched
+    loop()
     time.sleep(0.001)
+
