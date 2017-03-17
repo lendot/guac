@@ -9,6 +9,12 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
+octave=config.default_octave
+
+patch=config.default_patch
+
+
+
 # handler for record button press
 def record_button():
     return
@@ -47,6 +53,7 @@ def track4_mute_button():
 
 # handler for octave up button press
 def octave_up_button():
+    global octave
     if octave<8:
         octave += 1
         print ("New octave: {0}".format(octave))
@@ -55,6 +62,7 @@ def octave_up_button():
 
 # handler for octave down button press
 def octave_down_button():
+    global octave
     if octave>0:
         octave -= 1
         print ("New octave: {0}".format(octave))
@@ -63,6 +71,7 @@ def octave_down_button():
 
 # handler for patch up button press
 def patch_up_button():
+    global patch
     if patch<127:
         patch += 1
         print ("New patch: {0}".format(patch))
@@ -72,6 +81,7 @@ def patch_up_button():
 
 # handler for patch down button press
 def patch_down_button():
+    global patch
     if patch>0:
         patch -= 1
         print ("New patch: {0}".format(patch))
@@ -96,11 +106,6 @@ buttons = {
 }
     
 
-
-octave=config.default_octave
-
-# patch to start with
-patch=config.default_patch
 
 # Create MPR121 instance.
 cap = MPR121.MPR121()
