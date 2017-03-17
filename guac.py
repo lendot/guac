@@ -167,14 +167,20 @@ def loop():
 
     # check buttons
     for button in config.button_pins:
-        if (GPIO.input(config.button_pins[button]) == True) and not buttons[button]['on']:
-            print('{0} pressed'.format(button))
-            buttons[button]['on']=True
-            buttons[button]['handler']()
-        if (GPIO.input(config.button_pins[button]) == False) and buttons[button]['on']:
-            print('{0} released'.format(button))
-            buttons[button]['on']=False
+        button_state=GPIO.input(config.button_pins[button])
+        if button_state != buttons[button]['on']:
+            current_time=int(round(time.time() * 1000))
+            if (current_time-buttons[button]['last_change'])>config.button_debounce:
+                buttons[button]['on']=button_state
+                if button_state:
+                    print('{0} pressed'.format(button))
+                    buttons[button]['handler']()
+                else:
+                    print('{0} released'.format(button))
+                buttons[button]['last_change']=current_time
+            
 
+            
             
     # Update last state and wait a short period before repeating.
     last_touched = current_touched
