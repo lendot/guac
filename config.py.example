@@ -3,11 +3,21 @@
 
 
 # set these to the (BCM) pin numbers they're connected to
-button_pins={'patch_down' : 19,
-             'patch_up' : 13,
-             'octave_down' : 6,
-             'octave_up' : 5}
-
+button_pins={
+    'record' : 4,
+    'play' : 17,
+    'stop' : 27,
+    'clear' : 22,
+    'track_advance' : 10,
+    'track1_mute' : 14,
+    'track2_mute' : 15,
+    'track3_mute' : 18,
+    'track4_mute' : 23,
+    'patch_down' : 6,
+    'patch_up' : 13,
+    'octave_down' : 19,
+    'octave_up' : 26,
+}
 
 midi_device=0
 
