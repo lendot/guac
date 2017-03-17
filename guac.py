@@ -97,11 +97,10 @@ buttons = {
     
 
 
-# octave to start with
-octave=5
+octave=config.default_octave
 
 # patch to start with
-patch=0
+patch=config.default_patch
 
 # Create MPR121 instance.
 cap = MPR121.MPR121()
@@ -163,7 +162,6 @@ def loop():
 
     # check buttons
     for button in config.button_pins:
-        print (button)
         if (GPIO.input(config.button_pins[button]) == True) and not buttons[button]['on']:
             print('{0} pressed'.format(button))
             buttons[button]['on']=True

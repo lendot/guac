@@ -17,3 +17,9 @@ NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
 # sensitivity settings for touch sensors
 on_threshold=64
 off_threshold=32
+
+# octave to start with
+default_octave=5
+
+# patch to start with
+default_patch=0
