@@ -97,39 +97,6 @@ buttons = {
     
 
 
-def loop():
-    current_touched = cap.touched()
-    # Check each pin's last and current state to see if it was pressed or released.
-    for i in range(12):
-        # Each pin is represented by a bit in the touched value.  A value of 1
-        # means the pin is being touched, and 0 means it is not being touched.
-        pin_bit = 1 << i
-        # First check if transitioned from not touched to touched.
-        if current_touched & pin_bit and not last_touched & pin_bit:
-            print('{0} touched!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
-            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
-        if not current_touched & pin_bit and last_touched & pin_bit:
-            print('{0} released!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
-
-
-    # check buttons
-    for button in config.button_pins.keys:
-        if (GPIO.input(config.button_pins[button]) == True) and not buttons[button]['on']:
-            print('{0} pressed'.format(button))
-            buttons[button]['on']=True
-            buttons[button]['handler']()
-        if (GPIO.input(config.button_pins[button]) == False) and buttons[button]['on']:
-            print('{0} released'.format(button))
-            buttons[button]['on']=False
-
-
-    # Update last state and wait a short period before repeating.
-    last_touched = current_touched
-    return
-
-
 # octave to start with
 octave=5
 
@@ -172,8 +139,47 @@ midi=pygame.midi.Output(config.midi_device)
 
 midi.set_instrument(patch)
 
-print('Press Ctrl-C to quit.')
 last_touched = cap.touched()
+
+
+def loop():
+    global last_touched
+    
+    current_touched = cap.touched()
+    # Check each pin's last and current state to see if it was pressed or released.
+    for i in range(12):
+        # Each pin is represented by a bit in the touched value.  A value of 1
+        # means the pin is being touched, and 0 means it is not being touched.
+        pin_bit = 1 << i
+        # First check if transitioned from not touched to touched.
+        if current_touched & pin_bit and not last_touched & pin_bit:
+            print('{0} touched!'.format(i))
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
+            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
+        if not current_touched & pin_bit and last_touched & pin_bit:
+            print('{0} released!'.format(i))
+            midi.note_off(octave*12+config.NOTE_OFFSET[i])
+
+
+    # check buttons
+    for button in config.button_pins:
+        print (button)
+        if (GPIO.input(config.button_pins[button]) == True) and not buttons[button]['on']:
+            print('{0} pressed'.format(button))
+            buttons[button]['on']=True
+            buttons[button]['handler']()
+        if (GPIO.input(config.button_pins[button]) == False) and buttons[button]['on']:
+            print('{0} released'.format(button))
+            buttons[button]['on']=False
+
+            
+    # Update last state and wait a short period before repeating.
+    last_touched = current_touched
+    return
+
+
+
+print('Press Ctrl-C to quit.')
 while True:
     loop()
     time.sleep(0.001)
