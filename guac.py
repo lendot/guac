@@ -134,6 +134,11 @@ for pin in config.button_pins.keys():
     GPIO.setup(config.button_pins[pin],GPIO.IN)
 
 
+key_states=[]
+for i in range(12):
+    key_states.append({'on':False,'last_change':0})
+
+    
 pygame.midi.init()
 dev_info=pygame.midi.get_device_info(config.midi_device)
 print dev_info
@@ -143,11 +148,8 @@ midi=pygame.midi.Output(config.midi_device)
 
 midi.set_instrument(patch)
 
-last_touched = cap.touched()
-
 
 def loop():
-    global last_touched
     
     current_touched = cap.touched()
     # Check each pin's last and current state to see if it was pressed or released.
@@ -155,15 +157,23 @@ def loop():
         # Each pin is represented by a bit in the touched value.  A value of 1
         # means the pin is being touched, and 0 means it is not being touched.
         pin_bit = 1 << i
-        # First check if transitioned from not touched to touched.
-        if current_touched & pin_bit and not last_touched & pin_bit:
-            print('{0} touched!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
-            midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
-        if not current_touched & pin_bit and last_touched & pin_bit:
-            print('{0} released!'.format(i))
-            midi.note_off(octave*12+config.NOTE_OFFSET[i])
 
+        key_state = (current_touched & pin_bit)
+        
+        if key_state != key_states[i]['on']:
+            current_time=int(round(time.time() * 1000))
+            if (current_time-key_states[i]['last_change'])>config.key_debounce:
+                key_states[i]['on']=key_state
+                if key_state:
+                    print('{0} touched'.format(i))
+                    midi.note_off(octave*12+config.NOTE_OFFSET[i])
+                    midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
+                else:
+                    print('{0} released'.format(i))
+                    midi.note_off(octave*12+config.NOTE_OFFSET[i])
+                key_states[i]['last_change']=current_time
+        
+        
 
     # check buttons
     for button in config.button_pins:
@@ -182,8 +192,6 @@ def loop():
 
             
             
-    # Update last state and wait a short period before repeating.
-    last_touched = current_touched
     return
 
 

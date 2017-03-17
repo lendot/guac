@@ -22,6 +22,9 @@ button_pins={
 # minimum delay between button state toggles, in ms
 button_debounce=50
 
+# minimum delay between key state toggles, in ms
+key_debounce=100
+
 midi_device=0
 
 # midi note offsets from octave to use for sensor input mappings.
