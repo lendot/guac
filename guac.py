@@ -9,12 +9,21 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
-octave=config.default_octave
+#octave=config.default_octave
 
-patch=config.default_patch
+#patch=config.default_patch
 
+channels=[]
+for i in range(4):
+    channels.append({'midi_channel':i,
+                     'on':True,
+                     'patch':config.default_patch,
+                     'octave':config.default_octave})
 
+num_channels=len(channels)
+current_channel=0
 
+    
 # handler for record button press
 def record_button():
     return
@@ -33,6 +42,11 @@ def clear_button():
 
 # handler for track advance button press
 def track_advance_button():
+    global current_channel
+    current_channel+=1
+    if current_channel>=num_channels:
+        current_channel=0
+    print("new channel: {0}".format(current_channel))
     return
 
 # handler for track1 enable/disable button press
@@ -53,40 +67,56 @@ def track4_mute_button():
 
 # handler for octave up button press
 def octave_up_button():
-    global octave
-    if octave<8:
-        octave += 1
-        print ("New octave: {0}".format(octave))
-    return
+    global channels
+    global current_channel
 
+    channel=channels[current_channel]
+    
+    if channel['octave']<8:
+        channel['octave']+=1
+        print ("New octave: {0}".format(channel['octave']))
+    
 
 # handler for octave down button press
 def octave_down_button():
-    global octave
-    if octave>0:
-        octave -= 1
-        print ("New octave: {0}".format(octave))
-    return
+    global channels
+    global current_channel
+
+    channel=channels[current_channel]
+    
+    if channel['octave']>0:
+        channel['octave']-=1
+        print ("New octave: {0}".format(channel['octave']))
+
 
 
 # handler for patch up button press
 def patch_up_button():
-    global patch
-    if patch<127:
-        patch += 1
-        print ("New patch: {0}".format(patch))
-        midi.set_instrument(patch)
+    global channels
+    global current_channel
+    
+    channel=channels[current_channel]
+
+    if channel['patch']<127:
+        channel['patch'] += 1
+        print ("New patch: {0}".format(channel['patch']))
+        midi.set_instrument(channel['patch'],channel['midi_channel'])
     return
 
 
 # handler for patch down button press
 def patch_down_button():
-    global patch
-    if patch>0:
-        patch -= 1
-        print ("New patch: {0}".format(patch))
-        midi.set_instrument(patch)
+    global channels
+    global current_channel
+    
+    channel=channels[current_channel]
+
+    if channel['patch']>0:
+        channel['patch'] -= 1
+        print ("New patch: {0}".format(channel['patch']))
+        midi.set_instrument(channel['patch'],channel['midi_channel'])
     return
+
 
 
 buttons = {
@@ -146,7 +176,10 @@ print dev_info
 midi=pygame.midi.Output(config.midi_device)
 
 
-midi.set_instrument(patch)
+for channel in channels:
+    midi.set_instrument(channel['patch'],channel['midi_channel'])
+
+#midi.set_instrument(patch)
 
 
 def loop():
@@ -164,13 +197,16 @@ def loop():
             current_time=int(round(time.time() * 1000))
             if (current_time-key_states[i]['last_change'])>config.key_debounce:
                 key_states[i]['on']=key_state
+                channel=channels[current_channel]
+                octave=channel['octave']
+                midi_channel=channel['midi_channel']
                 if key_state:
                     print('{0} touched'.format(i))
-                    midi.note_off(octave*12+config.NOTE_OFFSET[i])
-                    midi.note_on(octave*12+config.NOTE_OFFSET[i],127,0)
+                    midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
+                    midi.note_on(octave*12+config.NOTE_OFFSET[i],config.note_velocity,midi_channel)
                 else:
                     print('{0} released'.format(i))
-                    midi.note_off(octave*12+config.NOTE_OFFSET[i])
+                    midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
                 key_states[i]['last_change']=current_time
         
         

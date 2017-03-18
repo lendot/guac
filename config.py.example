@@ -23,7 +23,7 @@ button_pins={
 button_debounce=50
 
 # minimum delay between key state toggles, in ms
-key_debounce=100
+key_debounce=50
 
 midi_device=0
 
@@ -39,3 +39,6 @@ default_octave=5
 
 # patch to start with
 default_patch=0
+
+# midi velocity to use when playing notes
+note_velocity=64
