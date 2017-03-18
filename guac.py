@@ -23,6 +23,28 @@ for i in range(4):
 num_channels=len(channels)
 current_channel=0
 
+
+key_states=[]
+for i in range(12):
+    key_states.append({'on':False,'last_change':0})
+
+    
+
+#turns off all notes on the current channel
+def notes_off():
+    global channels
+    global key_states
+    global current_channel
+    channel=channels[current_channel]
+    octave=channel['octave']
+    midi_channel=channel['midi_channel']
+    current_time=int(round(time.time() * 1000))
+    for i in range(len(key_states)):
+        key_state=key_states[i]
+        if key_state['on']:
+            midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
+            key_state['on']=False
+            key_state['last_change']=current_time
     
 # handler for record button press
 def record_button():
@@ -43,6 +65,7 @@ def clear_button():
 # handler for track advance button press
 def track_advance_button():
     global current_channel
+    notes_off()
     current_channel+=1
     if current_channel>=num_channels:
         current_channel=0
@@ -70,6 +93,8 @@ def octave_up_button():
     global channels
     global current_channel
 
+    notes_off()
+    
     channel=channels[current_channel]
     
     if channel['octave']<8:
@@ -81,6 +106,8 @@ def octave_up_button():
 def octave_down_button():
     global channels
     global current_channel
+
+    notes_off()
 
     channel=channels[current_channel]
     
@@ -94,6 +121,8 @@ def octave_down_button():
 def patch_up_button():
     global channels
     global current_channel
+
+    notes_off()
     
     channel=channels[current_channel]
 
@@ -108,6 +137,8 @@ def patch_up_button():
 def patch_down_button():
     global channels
     global current_channel
+
+    notes_off()
     
     channel=channels[current_channel]
 
@@ -164,11 +195,6 @@ for pin in config.button_pins.keys():
     GPIO.setup(config.button_pins[pin],GPIO.IN)
 
 
-key_states=[]
-for i in range(12):
-    key_states.append({'on':False,'last_change':0})
-
-    
 pygame.midi.init()
 dev_info=pygame.midi.get_device_info(config.midi_device)
 print dev_info
