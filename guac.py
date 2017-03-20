@@ -28,6 +28,10 @@ key_states=[]
 for i in range(12):
     key_states.append({'on':False,'last_change':0})
 
+
+def debug_print(msg):
+    if config.debug:
+        print(msg)
     
 
 #turns off all notes on the current channel
@@ -176,14 +180,14 @@ if not cap.begin():
     sys.exit(1)
 
 
-cap.set_thresholds(config.on_threshold,config.off_threshold)
-
 # Alternatively, specify a custom I2C address such as 0x5B (ADDR tied to 3.3V),
 # 0x5C (ADDR tied to SDA), or 0x5D (ADDR tied to SCL).
 #cap.begin(address=0x5B)
 
 # Also you can specify an optional I2C bus with the bus keyword parameter.
 #cap.begin(busnum=1)
+
+cap.set_thresholds(config.on_threshold,config.off_threshold)
 
 pygame.mixer.pre_init(44100, -16, 12, 512)
 pygame.init()
@@ -227,11 +231,11 @@ def loop():
                 octave=channel['octave']
                 midi_channel=channel['midi_channel']
                 if key_state:
-                    print('{0} touched'.format(i))
+                    debug_print('{0} touched'.format(i))
                     midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
                     midi.note_on(octave*12+config.NOTE_OFFSET[i],config.note_velocity,midi_channel)
                 else:
-                    print('{0} released'.format(i))
+                    debug_print('{0} released'.format(i))
                     midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
                 key_states[i]['last_change']=current_time
         
@@ -245,10 +249,10 @@ def loop():
             if (current_time-buttons[button]['last_change'])>config.button_debounce:
                 buttons[button]['on']=button_state
                 if button_state:
-                    print('{0} pressed'.format(button))
+                    debug_print('{0} pressed'.format(button))
                     buttons[button]['handler']()
                 else:
-                    print('{0} released'.format(button))
+                    debug_print('{0} released'.format(button))
                 buttons[button]['last_change']=current_time
             
 

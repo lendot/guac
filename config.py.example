@@ -2,6 +2,9 @@
 # copy/rename to config.py and edit as necessary
 
 
+# set to True to print out extra debugging information
+debug=False
+
 # set these to the (BCM) pin numbers they're connected to
 button_pins={
     'record' : 4,
