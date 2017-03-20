@@ -24,6 +24,9 @@ for i in range(4):
                      'patch':config.default_patch,
                      'octave':config.default_octave})
 
+tracks[3]['midi_channel']=9
+print(tracks)
+
 num_tracks=len(tracks)
 current_track=0
 
@@ -69,13 +72,16 @@ def record_button():
         event_index=0
         loop_start=current_time
         playing=True
+        debug_print("end new loop. Length: {0}".format(loop_length))
     elif not recording:
+        debug_print("starting loop record")
         recording=True
         if not playing:
             playing=True
             current_time=get_time()
             loop_start=current_time
             event_index=0
+            debug_print("starting loop play")
     return
 
 # handler for play button press
@@ -87,6 +93,7 @@ def play_button():
         return
     elif recording:
         # come out of recording into play mode
+        debug_print("changing from loop record to playback")
         recording=False
         playing=True # just to be on the safe side
         if loop_length==-1:
@@ -95,7 +102,9 @@ def play_button():
             loop_length=current_time-loop_start
             event_index=0
             loop_start=current_time
+            debug_print("end new loop. Length: {0}".format(loop_length))
     elif not playing and loop_length>0:
+        debug_print("starting loop play")
         playing=True
         event_index=0
         loop_start=get_time()
@@ -104,11 +113,12 @@ def play_button():
 # handler for stop button press
 def stop_button():
     print("Stop")
-    global loop_start,recording,loop_length,event_index
+    global loop_start,recording,loop_length,event_index,playing,recording
     if recording and loop_length==-1:
         # stop was hit during a new loop. Mark this as the loop end
         current_time=get_time()
         loop_length=current_time-loop_start
+        debug_print("end new loop. Length: {0}".format(loop_length))
     recording=False
     playing=False
     event_index=0
@@ -120,6 +130,7 @@ def clear_button():
     print("Clear")
     recording=False
     playing=False
+    loop_length=-1
     del events[:]
     event_index=0
     return
@@ -267,11 +278,27 @@ midi=pygame.midi.Output(config.midi_device)
 for track in tracks:
     midi.set_instrument(track['patch'],track['midi_channel'])
 
-#midi.set_instrument(patch)
-
 
 def loop():
-    
+    global loop_start,event_index,loop_length
+
+    if playing and loop_length>0:
+        current_time=get_time()
+        loop_offset=current_time-loop_start
+        if loop_offset>=loop_length:
+            loop_start=current_time
+            loop_offset=0
+            event_index=0
+        while event_index<len(events) and events[event_index]['time']<=loop_offset:
+            event=events[event_index]
+            debug_print(event)
+            debug_print(loop_offset)
+            if event['velocity']==0:
+                midi.note_off(event['note'],None,event['midi_channel'])
+            else:
+                midi.note_on(event['note'],event['velocity'],event['midi_channel'])
+            event_index+=1
+
     current_touched = cap.touched()
     # Check each pin's last and current state to see if it was pressed or released.
     for i in range(12):
@@ -288,6 +315,7 @@ def loop():
                 track=tracks[current_track]
                 octave=track['octave']
                 midi_channel=track['midi_channel']
+                debug_print("track {0} octave {1} midi_channel {2}".format(track,octave,midi_channel))
                 note=octave*12+config.NOTE_OFFSET[i]
                 if key_state:
                     debug_print('{0} touched'.format(i))
@@ -301,6 +329,8 @@ def loop():
                             'velocity':config.note_velocity
                             }
                         events.insert(event_index,note_event)
+                        event_index+=1
+                        debug_print(note_event)
                 else:
                     debug_print('{0} released'.format(i))
                     midi.note_off(note,None,midi_channel)
@@ -312,6 +342,7 @@ def loop():
                             'velocity':0
                             }
                         events.insert(event_index,note_event)
+                        event_index+=1
                 key_states[i]['last_change']=current_time
         
         
