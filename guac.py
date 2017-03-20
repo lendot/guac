@@ -13,15 +13,15 @@ import config
 
 #patch=config.default_patch
 
-channels=[]
+tracks=[]
 for i in range(4):
-    channels.append({'midi_channel':i,
+    tracks.append({'midi_channel':i,
                      'on':True,
                      'patch':config.default_patch,
                      'octave':config.default_octave})
 
-num_channels=len(channels)
-current_channel=0
+num_tracks=len(tracks)
+current_track=0
 
 
 key_states=[]
@@ -34,14 +34,14 @@ def debug_print(msg):
         print(msg)
     
 
-#turns off all notes on the current channel
+#turns off all notes on the current track
 def notes_off():
-    global channels
+    global tracks
     global key_states
-    global current_channel
-    channel=channels[current_channel]
-    octave=channel['octave']
-    midi_channel=channel['midi_channel']
+    global current_track
+    track=tracks[current_track]
+    octave=track['octave']
+    midi_channel=track['midi_channel']
     current_time=int(round(time.time() * 1000))
     for i in range(len(key_states)):
         key_state=key_states[i]
@@ -68,12 +68,12 @@ def clear_button():
 
 # handler for track advance button press
 def track_advance_button():
-    global current_channel
+    global current_track
     notes_off()
-    current_channel+=1
-    if current_channel>=num_channels:
-        current_channel=0
-    print("new channel: {0}".format(current_channel))
+    current_track+=1
+    if current_track>=num_tracks:
+        current_track=0
+    print("new track: {0}".format(current_track))
     return
 
 # handler for track1 enable/disable button press
@@ -94,62 +94,62 @@ def track4_mute_button():
 
 # handler for octave up button press
 def octave_up_button():
-    global channels
-    global current_channel
+    global tracks
+    global current_track
 
     notes_off()
     
-    channel=channels[current_channel]
+    track=tracks[current_track]
     
-    if channel['octave']<8:
-        channel['octave']+=1
-        print ("New octave: {0}".format(channel['octave']))
+    if track['octave']<8:
+        track['octave']+=1
+        print ("New octave: {0}".format(track['octave']))
     
 
 # handler for octave down button press
 def octave_down_button():
-    global channels
-    global current_channel
+    global tracks
+    global current_track
 
     notes_off()
 
-    channel=channels[current_channel]
+    track=tracks[current_track]
     
-    if channel['octave']>0:
-        channel['octave']-=1
-        print ("New octave: {0}".format(channel['octave']))
+    if track['octave']>0:
+        track['octave']-=1
+        print ("New octave: {0}".format(track['octave']))
 
 
 
 # handler for patch up button press
 def patch_up_button():
-    global channels
-    global current_channel
+    global tracks
+    global current_track
 
     notes_off()
     
-    channel=channels[current_channel]
+    track=tracks[current_track]
 
-    if channel['patch']<127:
-        channel['patch'] += 1
-        print ("New patch: {0}".format(channel['patch']))
-        midi.set_instrument(channel['patch'],channel['midi_channel'])
+    if track['patch']<127:
+        track['patch'] += 1
+        print ("New patch: {0}".format(track['patch']))
+        midi.set_instrument(track['patch'],track['midi_channel'])
     return
 
 
 # handler for patch down button press
 def patch_down_button():
-    global channels
-    global current_channel
+    global tracks
+    global current_track
 
     notes_off()
     
-    channel=channels[current_channel]
+    track=tracks[current_track]
 
-    if channel['patch']>0:
-        channel['patch'] -= 1
-        print ("New patch: {0}".format(channel['patch']))
-        midi.set_instrument(channel['patch'],channel['midi_channel'])
+    if track['patch']>0:
+        track['patch'] -= 1
+        print ("New patch: {0}".format(track['patch']))
+        midi.set_instrument(track['patch'],track['midi_channel'])
     return
 
 
@@ -206,8 +206,8 @@ print dev_info
 midi=pygame.midi.Output(config.midi_device)
 
 
-for channel in channels:
-    midi.set_instrument(channel['patch'],channel['midi_channel'])
+for track in tracks:
+    midi.set_instrument(track['patch'],track['midi_channel'])
 
 #midi.set_instrument(patch)
 
@@ -227,9 +227,9 @@ def loop():
             current_time=int(round(time.time() * 1000))
             if (current_time-key_states[i]['last_change'])>config.key_debounce:
                 key_states[i]['on']=key_state
-                channel=channels[current_channel]
-                octave=channel['octave']
-                midi_channel=channel['midi_channel']
+                track=tracks[current_track]
+                octave=track['octave']
+                midi_channel=track['midi_channel']
                 if key_state:
                     debug_print('{0} touched'.format(i))
                     midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
