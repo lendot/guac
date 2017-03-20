@@ -9,9 +9,13 @@ import Adafruit_MPR121.MPR121 as MPR121
 
 import config
 
-#octave=config.default_octave
+playing=False
+recording=False
+loop_length=-1
+loop_start=-1
 
-#patch=config.default_patch
+events=[]
+event_index=0
 
 tracks=[]
 for i in range(4):
@@ -32,8 +36,12 @@ for i in range(12):
 def debug_print(msg):
     if config.debug:
         print(msg)
-    
 
+# get the current time, in ms
+def get_time():
+    current_time=int(round(time.time() * 1000))
+    return current_time
+        
 #turns off all notes on the current track
 def notes_off():
     global tracks
@@ -42,7 +50,7 @@ def notes_off():
     track=tracks[current_track]
     octave=track['octave']
     midi_channel=track['midi_channel']
-    current_time=int(round(time.time() * 1000))
+    current_time=get_time()
     for i in range(len(key_states)):
         key_state=key_states[i]
         if key_state['on']:
@@ -52,18 +60,68 @@ def notes_off():
     
 # handler for record button press
 def record_button():
+    global playing,recording,event_index,loop_start,loop_length
+    print("Record")
+    if recording and loop_length==-1:
+        # This is a new loop. Mark now as the loop end
+        current_time=get_time()
+        loop_length=current_time-loop_start
+        event_index=0
+        loop_start=current_time
+        playing=True
+    elif not recording:
+        recording=True
+        if not playing:
+            playing=True
+            current_time=get_time()
+            loop_start=current_time
+            event_index=0
     return
 
 # handler for play button press
 def play_button():
+    global playing,recording,event_index,loop_start,loop_length
+    print("Play")
+    if playing and not recording:
+        # right now we'll just do nothing in this state.
+        return
+    elif recording:
+        # come out of recording into play mode
+        recording=False
+        playing=True # just to be on the safe side
+        if loop_length==-1:
+            # this is a new loop. Mark now as the loop end
+            current_time=get_time()
+            loop_length=current_time-loop_start
+            event_index=0
+            loop_start=current_time
+    elif not playing and loop_length>0:
+        playing=True
+        event_index=0
+        loop_start=get_time()
     return
 
 # handler for stop button press
 def stop_button():
+    print("Stop")
+    global loop_start,recording,loop_length,event_index
+    if recording and loop_length==-1:
+        # stop was hit during a new loop. Mark this as the loop end
+        current_time=get_time()
+        loop_length=current_time-loop_start
+    recording=False
+    playing=False
+    event_index=0
     return
 
 # handler for clear button press
 def clear_button():
+    global recording,playing,loop_length,loop_start,events,event_index
+    print("Clear")
+    recording=False
+    playing=False
+    del events[:]
+    event_index=0
     return
 
 # handler for track advance button press
@@ -224,19 +282,36 @@ def loop():
         key_state = (current_touched & pin_bit)
         
         if key_state != key_states[i]['on']:
-            current_time=int(round(time.time() * 1000))
+            current_time=get_time()
             if (current_time-key_states[i]['last_change'])>config.key_debounce:
                 key_states[i]['on']=key_state
                 track=tracks[current_track]
                 octave=track['octave']
                 midi_channel=track['midi_channel']
+                note=octave*12+config.NOTE_OFFSET[i]
                 if key_state:
                     debug_print('{0} touched'.format(i))
-                    midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
-                    midi.note_on(octave*12+config.NOTE_OFFSET[i],config.note_velocity,midi_channel)
+                    midi.note_off(note,None,midi_channel)
+                    midi.note_on(note,config.note_velocity,midi_channel)
+                    if recording:
+                        note_event={
+                            'time':current_time-loop_start,
+                            'note':note,
+                            'midi_channel':midi_channel,
+                            'velocity':config.note_velocity
+                            }
+                        events.insert(event_index,note_event)
                 else:
                     debug_print('{0} released'.format(i))
-                    midi.note_off(octave*12+config.NOTE_OFFSET[i],None,midi_channel)
+                    midi.note_off(note,None,midi_channel)
+                    if recording:
+                        note_event={
+                            'time':current_time-loop_start,
+                            'note':note,
+                            'midi_channel':midi_channel,
+                            'velocity':0
+                            }
+                        events.insert(event_index,note_event)
                 key_states[i]['last_change']=current_time
         
         
@@ -245,7 +320,7 @@ def loop():
     for button in config.button_pins:
         button_state=GPIO.input(config.button_pins[button])
         if button_state != buttons[button]['on']:
-            current_time=int(round(time.time() * 1000))
+            current_time=get_time()
             if (current_time-buttons[button]['last_change'])>config.button_debounce:
                 buttons[button]['on']=button_state
                 if button_state:
