@@ -12,15 +12,18 @@ button_pins={
     'stop' : 27,
     'clear' : 22,
     'track_advance' : 10,
-    'track1_mute' : 14,
-    'track2_mute' : 15,
-    'track3_mute' : 18,
-    'track4_mute' : 23,
+    'track1_mute' : 12,
+    'track2_mute' : 16,
+    'track3_mute' : 20,
+    'track4_mute' :21,
     'patch_down' : 6,
     'patch_up' : 13,
     'octave_down' : 19,
     'octave_up' : 26,
 }
+
+# set these to the (BCM) pin numbers they're connect to
+track_led_pins=[25,24,23,18]
 
 # minimum delay between button state toggles, in ms
 button_debounce=50
@@ -34,7 +37,7 @@ midi_device=0
 NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
 
 # sensitivity settings for touch sensors
-on_threshold=64
+on_threshold=80
 off_threshold=32
 
 # octave to start with

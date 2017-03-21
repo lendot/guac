@@ -139,9 +139,11 @@ def clear_button():
 def track_advance_button():
     global current_track
     notes_off()
+    GPIO.output(config.track_led_pins[current_track],GPIO.LOW)
     current_track+=1
     if current_track>=num_tracks:
         current_track=0
+    GPIO.output(config.track_led_pins[current_track],GPIO.HIGH)
     print("new track: {0}".format(current_track))
     return
 
@@ -278,6 +280,13 @@ midi=pygame.midi.Output(config.midi_device)
 for track in tracks:
     midi.set_instrument(track['patch'],track['midi_channel'])
 
+
+for i in range(4):
+    GPIO.setup(config.track_led_pins[i],GPIO.OUT)
+    status=GPIO.LOW
+    if i==current_track:
+        status=GPIO.HIGH
+    GPIO.output(config.track_led_pins[i],status)
 
 def loop():
     global loop_start,event_index,loop_length
