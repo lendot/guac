@@ -34,11 +34,12 @@ key_debounce=50
 midi_device=0
 
 # midi note offsets from octave to use for sensor input mappings.
-NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
+#NOTE_OFFSET = [0,2,4,5,7,9,11,12,14,16,17,19]
+NOTE_OFFSET = range(24)
 
 # sensitivity settings for touch sensors
-on_threshold=80
-off_threshold=32
+on_threshold=100
+off_threshold=20
 
 # octave to start with
 default_octave=5
@@ -48,3 +49,8 @@ default_patch=0
 
 # midi velocity to use when playing notes
 note_velocity=64
+
+
+# i2c addresses for each touch sensor, in order
+# default address=0x5A
+cap_sensors=[0x5A,0x5B]

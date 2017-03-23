@@ -32,7 +32,7 @@ current_track=0
 
 
 key_states=[]
-for i in range(12):
+for i in range(len(config.NOTE_OFFSET)):
     key_states.append({'on':False,'last_change':0})
 
 
@@ -241,14 +241,22 @@ buttons = {
     'patch_down':{'handler':patch_down_button,'on':False,'last_change':0},
 }
     
+caps=[]
 
+# Create MPR121 instance(s)
+for sensor in config.cap_sensors:
+    cap=MPR121.MPR121()
+    if not cap.begin(address=sensor):
+        print('Error initializing MPR121@{0}'.format(sensor))
+        sys.exit(1)
+    cap.set_thresholds(config.on_threshold,config.off_threshold)
+    caps.append(cap)
 
-# Create MPR121 instance.
-cap = MPR121.MPR121()
+#cap = MPR121.MPR121()
 
-if not cap.begin():
-    print('Error initializing MPR121.')
-    sys.exit(1)
+#if not cap.begin():
+#    print('Error initializing MPR121.')
+#    sys.exit(1)
 
 
 # Alternatively, specify a custom I2C address such as 0x5B (ADDR tied to 3.3V),
@@ -258,7 +266,6 @@ if not cap.begin():
 # Also you can specify an optional I2C bus with the bus keyword parameter.
 #cap.begin(busnum=1)
 
-cap.set_thresholds(config.on_threshold,config.off_threshold)
 
 pygame.mixer.pre_init(44100, -16, 12, 512)
 pygame.init()
@@ -308,52 +315,55 @@ def loop():
                 midi.note_on(event['note'],event['velocity'],event['midi_channel'])
             event_index+=1
 
-    current_touched = cap.touched()
-    # Check each pin's last and current state to see if it was pressed or released.
-    for i in range(12):
+    cap_idx=0
+    for cap in caps:
+        current_touched = cap.touched()
+        # Check each pin's last and current state to see if it was pressed or released.
+        for i in range(12):
         # Each pin is represented by a bit in the touched value.  A value of 1
         # means the pin is being touched, and 0 means it is not being touched.
-        pin_bit = 1 << i
-
-        key_state = (current_touched & pin_bit)
-        
-        if key_state != key_states[i]['on']:
-            current_time=get_time()
-            if (current_time-key_states[i]['last_change'])>config.key_debounce:
-                key_states[i]['on']=key_state
-                track=tracks[current_track]
-                octave=track['octave']
-                midi_channel=track['midi_channel']
-                debug_print("track {0} octave {1} midi_channel {2}".format(track,octave,midi_channel))
-                note=octave*12+config.NOTE_OFFSET[i]
-                if key_state:
-                    debug_print('{0} touched'.format(i))
-                    midi.note_off(note,None,midi_channel)
-                    midi.note_on(note,config.note_velocity,midi_channel)
-                    if recording:
-                        note_event={
-                            'time':current_time-loop_start,
-                            'note':note,
-                            'midi_channel':midi_channel,
-                            'velocity':config.note_velocity
+            pin_bit = 1 << i
+            
+            key_state = (current_touched & pin_bit)
+            key_idx=cap_idx+i
+            
+            if key_state != key_states[key_idx]['on']:
+                current_time=get_time()
+                if (current_time-key_states[key_idx]['last_change'])>config.key_debounce:
+                    key_states[key_idx]['on']=key_state
+                    track=tracks[current_track]
+                    octave=track['octave']
+                    midi_channel=track['midi_channel']
+                    debug_print("track {0} octave {1} midi_channel {2}".format(track,octave,midi_channel))
+                    note=octave*12+config.NOTE_OFFSET[key_idx]
+                    if key_state:
+                        debug_print('{0} touched'.format(key_idx))
+                        midi.note_off(note,None,midi_channel)
+                        midi.note_on(note,config.note_velocity,midi_channel)
+                        if recording:
+                            note_event={
+                                'time':current_time-loop_start,
+                                'note':note,
+                                'midi_channel':midi_channel,
+                                'velocity':config.note_velocity
                             }
-                        events.insert(event_index,note_event)
-                        event_index+=1
-                        debug_print(note_event)
-                else:
-                    debug_print('{0} released'.format(i))
-                    midi.note_off(note,None,midi_channel)
-                    if recording:
-                        note_event={
-                            'time':current_time-loop_start,
-                            'note':note,
-                            'midi_channel':midi_channel,
-                            'velocity':0
+                            events.insert(event_index,note_event)
+                            event_index+=1
+                            debug_print(note_event)
+                    else:
+                        debug_print('{0} released'.format(key_idx))
+                        midi.note_off(note,None,midi_channel)
+                        if recording:
+                            note_event={
+                                'time':current_time-loop_start,
+                                'note':note,
+                                'midi_channel':midi_channel,
+                                'velocity':0
                             }
-                        events.insert(event_index,note_event)
-                        event_index+=1
-                key_states[i]['last_change']=current_time
-        
+                            events.insert(event_index,note_event)
+                            event_index+=1
+                    key_states[key_idx]['last_change']=current_time
+        cap_idx+=12
         
 
     # check buttons
