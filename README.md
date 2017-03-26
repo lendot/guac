@@ -9,17 +9,21 @@ NOTE: This program will not make music on its own; something will have to listen
 
 Here are the commands I used on a fresh raspbian installation to get everything setup:
 
+Run `sudo raspi-config` and enable I2C.
+
+To get the guac code and its dependencies:
+
 ```
-pi@guacenspiel:~ $ sudo apt-get install build-essential python-dev python-smbus python-pip git python-pygame
-pi@guacenspiel:~ $ git clone https://github.com/adafruit/Adafruit_Python_MPR121.git
-pi@guacenspiel:~ $ cd Adafruit_Python_MPR121/
-pi@guacenspiel:~/Adafruit_Python_MPR121 $ sudo python setup.py install
-pi@guacenspiel:~/Adafruit_Python_MPR121 $ cd
-pi@guacenspiel:~ $ git clone https://github.com/lendot/guac.git
-pi@guacenspiel:~ $ cd guac/
-pi@guacenspiel:~/guac $ cp config.py.example config.py
+sudo apt-get install build-essential python-dev python-smbus python-pip git python-pygame
+git clone https://github.com/adafruit/Adafruit_Python_MPR121.git
+cd Adafruit_Python_MPR121/
+sudo python setup.py install
+cd
+git clone https://github.com/lendot/guac.git
+cd guac/
+cp config.py.example config.py
 ```
-To start fluidsynth:
+To install and run fluidsynth:
 ```
 pi@guacenspiel:~ $ sudo apt-get install fluidsynth alsa-utils
 pi@guacenspiel:~ $ fluidsynth -s -a alsa -m alsa_seq /usr/share/sounds/sf2/FluidR3_GM.sf2
