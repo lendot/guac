@@ -25,12 +25,13 @@ cp config.py.example config.py
 ```
 To install and run fluidsynth:
 ```
-pi@guacenspiel:~ $ sudo apt-get install fluidsynth alsa-utils
-pi@guacenspiel:~ $ fluidsynth -s -a alsa -m alsa_seq /usr/share/sounds/sf2/FluidR3_GM.sf2
+sudo apt-get install fluidsynth
+fluidsynth -s -a alsa -m alsa_seq /usr/share/sounds/sf2/FluidR3_GM.sf2
 ```
 
 In another window I use `aconnect` to connect the output device guac uses to the input device for FluidSynth:
 ```
+pi@guacenspiel:~ $ sudo apt-get install alsa-utils
 pi@guacenspiel:~ $ cd guac/
 pi@guacenspiel:~/guac $ aconnect -l
 client 0: 'System' [type=kernel]
