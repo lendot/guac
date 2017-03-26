@@ -7,7 +7,7 @@ To configure for your setup, copy `config.py.example` to `config.py` and edit as
 
 NOTE: This program will not make music on its own; something will have to listen for the generated MIDI signals and produce the corresponding sounds. In my case I'm using [FluidSynth](http://www.fluidsynth.org/) on the same Pi and doing everything through ALSA.
 
-Here are the commands I used on a fresh raspbian installation to get everything setup:
+Here are the commands I used on a fresh [Raspbian Jessie Lite](https://www.raspberrypi.org/downloads/raspbian/) installation to get everything setup:
 
 Run `sudo raspi-config` and enable I2C.
 
