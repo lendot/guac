@@ -23,10 +23,12 @@ git clone https://github.com/lendot/guac.git
 cd guac/
 cp config.py.example config.py
 ```
+Edit `config.py` as needed.
+
 To install and run fluidsynth:
 ```
 sudo apt-get install fluidsynth
-fluidsynth -s -a alsa -m alsa_seq /usr/share/sounds/sf2/FluidR3_GM.sf2
+sudo fluidsynth -s -a alsa -m alsa_seq /usr/share/sounds/sf2/FluidR3_GM.sf2
 ```
 
 In another window I use `aconnect` to connect the output device guac uses to the input device for FluidSynth:
